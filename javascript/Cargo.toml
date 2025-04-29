@@ -1,5 +1,5 @@
 [package]
-name = "vodozemac-js"
+name = "vodozemac"
 version = "0.1.0"
 edition = "2021"
 

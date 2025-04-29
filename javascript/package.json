@@ -1,11 +1,50 @@
 {
+  "name": "@towns-protocol/vodozemac",
+  "version": "0.1.0",
+  "files": [
+    "index.mjs",
+    "index.cjs",
+    "index-wasm-esm.mjs",
+    "index.d.ts",
+    "node.mjs",
+    "node.cjs",
+    "pkg/vodozemac.d.ts",
+    "pkg/vodozemac_bg.js",
+    "pkg/vodozemac_bg.cjs",
+    "pkg/vodozemac_bg.wasm.d.ts",
+    "pkg/vodozemac_bg.wasm"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "towns-protocol:wasm-esm": {
+        "types": "./index.d.ts",
+        "default": "./index-wasm-esm.mjs"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "node": "./node.cjs",
+        "default": "./index.cjs"
+      },
+      "import": {
+        "types": "./index.d.ts",
+        "node": "./node.mjs",
+        "default": "./index.mjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "./scripts/build.sh",
+    "build:dev": "WASM_PACK_ARGS=--dev wasm-pack build --target nodejs",
+    "test": "vitest",
+    "prepack": "bun run build && bun run test"
+  },
   "devDependencies": {
+    "esbuild": "^0.25.3",
     "typescript": "5.8.3",
     "vitest": "3.1.2"
   },
-  "scripts": {
-    "build": "wasm-pack build --target bundler",
-    "build:node": "wasm-pack build --target nodejs",
-    "test": "vitest"
+  "engines": {
+    "node": ">= 18"
   }
 }

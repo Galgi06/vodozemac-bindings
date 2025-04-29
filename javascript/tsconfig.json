@@ -1,12 +1,7 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "strictNullChecks": true,
-    "skipLibCheck": false,
+    "lib": ["DOM"],
+    "allowJs": true,
     "types": ["vitest/globals"]
   },
 }

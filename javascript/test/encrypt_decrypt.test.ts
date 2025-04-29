@@ -20,13 +20,13 @@ describe('Encrypt and decrypt', () => {
         expect(bobIdentityKey).toBeDefined()
         expect(bobFallbackKey).toBeDefined()
 
-        const plaintext = 'Minimal hello for fallback key test'
+        const test_message = 'Minimal hello for fallback key test'
 
         const encrypted = bob.create_outbound_session(
             aliceIdentityKey,
             aliceFallbackKey,
             SessionConfigVersion.V1
-        ).encrypt(plaintext)
+        ).encrypt(test_message)
         expect(encrypted.message_type).toBe(0)
         expect(encrypted.ciphertext).toBeDefined()
         expect(encrypted.ciphertext.length).toBeGreaterThan(10)
@@ -37,7 +37,7 @@ describe('Encrypt and decrypt', () => {
             encrypted,
         )
         const decrypted = session.decrypt(encrypted)
-        expect(decrypted).toBe(plaintext) // Fails here
+        expect(decrypted).toBe(test_message) 
     })
 
     it('should encrypt and decrypt using one_time_keys between two accounts', async () => {
@@ -57,44 +57,34 @@ describe('Encrypt and decrypt', () => {
         expect(bobIdentityKey).toBeDefined()
         expect(bobOneTimeKeys).toBeDefined()
 
-        const plaintext = 'Minimal hello for fallback key test'
+        const test_message = 'Minimal hello for fallback key test'
 
         const encrypted = bob.create_outbound_session(
             aliceIdentityKey,
             aliceOneTimeKeys,
             SessionConfigVersion.V1
-        ).encrypt(plaintext)
+        ).encrypt(test_message)
         expect(encrypted.message_type).toBe(0)
         expect(encrypted.ciphertext).toBeDefined()
         expect(encrypted.ciphertext.length).toBeGreaterThan(10)
 
 
-        // TODO: what if we use new InboundGroupSession(encrypted, GroupSessionVersion.V1) instead of create_inbound_session?
-        const { session } = alice.create_inbound_session(
+        const { plaintext } = alice.create_inbound_session(
             bobIdentityKey,
             encrypted,
         )
-        const decrypted = session.decrypt(encrypted)
-        expect(decrypted).toBe(plaintext) // Fails here
+        expect(plaintext).toBe(test_message) 
     })
 
-    it.skip('stress test', async () => {
+    it('towns usage', async () => {
         const alice = new Account();
         const bob = new Account();
-        // public one time key for pre-key message generation to establish the session
         bob.generate_fallback_key()
-        bob.generate_one_time_keys(1);
-        bob.mark_keys_as_published()
-        bob.generate_one_time_keys(1);
-
-        alice.generate_fallback_key()
-        alice.generate_one_time_keys(2);
-        
 
         const bobIdKey = bob.curve25519_key
 
         const [bobOneTimeKey] = bob.one_time_keys.values()
-        // create outbound sessions using bob's one time key
+        // create outbound sessions using bob's fallback key
         expect(bobOneTimeKey).toBeDefined()
         expect(bobIdKey).toBeDefined()
 
@@ -105,7 +95,6 @@ describe('Encrypt and decrypt', () => {
 
         // create inbound sessions using own account and encrypted body from alice
         const { session: bobSession} = bob.create_inbound_session(alice.curve25519_key, encrypted) 
-        // bob.remove_one_time_keys(bobSession) 
 
         let decrypted = bobSession.decrypt(encrypted)
         expect(decrypted).toEqual(TEST_TEXT)

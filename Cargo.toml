@@ -1,4 +1,2 @@
 [workspace]
-members = [
-    "javascript",
-]
+members = ["javascript"]
