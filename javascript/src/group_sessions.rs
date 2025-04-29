@@ -72,6 +72,13 @@ impl GroupSession {
 
         Ok(Self { inner: session })
     }
+
+    pub fn from_libolm_pickle(pickle: &str, pickle_key: &[u8]) -> Result<GroupSession, JsValue> {
+        let session = vodozemac::megolm::GroupSession::from_libolm_pickle(pickle, pickle_key)
+            .map_err(error_to_js)?;
+
+        Ok(Self { inner: session })
+    }
 }
 
 #[wasm_bindgen(getter_with_clone)]
