@@ -1,10 +1,14 @@
 use std::collections::HashMap;
 
+use vodozemac::olm::SessionConfig;
 use wasm_bindgen::prelude::*;
 
-use crate::error_to_js;
+use crate::{error_to_js, session::SessionConfigVersion};
 
-use super::{session::Session, OlmMessage};
+use super::{
+    session::Session,
+    OlmMessage,
+};
 
 #[wasm_bindgen]
 pub struct Account {
@@ -36,10 +40,29 @@ impl From<vodozemac::olm::InboundCreationResult> for InboundCreationResult {
             session: Session {
                 inner: result.session,
             },
-            plaintext: result.plaintext,
+            plaintext: String::from_utf8(result.plaintext).unwrap(),
         }
     }
 }
+#[wasm_bindgen]
+pub struct OneTimeKeyGenerationResult {
+    pub (super) inner : vodozemac::olm::OneTimeKeyGenerationResult,
+
+}
+
+#[wasm_bindgen]
+impl OneTimeKeyGenerationResult {
+    #[wasm_bindgen(getter)]
+    pub fn created(&self) -> Vec<String> {
+        self.inner.created.iter().map(|k| k.to_base64()).collect()
+    }
+    #[wasm_bindgen(getter)]
+
+    pub fn removed(&self) -> Vec<String> {
+        self.inner.removed.iter().map(|k| k.to_base64()).collect()
+    }
+}
+
 
 #[wasm_bindgen]
 impl Account {
@@ -107,8 +130,10 @@ impl Account {
         Ok(serde_wasm_bindgen::to_value(&keys)?)
     }
 
-    pub fn generate_one_time_keys(&mut self, count: usize) {
-        self.inner.generate_one_time_keys(count)
+    pub fn generate_one_time_keys(&mut self, count: usize) -> OneTimeKeyGenerationResult {
+        OneTimeKeyGenerationResult {
+            inner: self.inner.generate_one_time_keys(count),
+        }
     }
 
     #[wasm_bindgen(method, getter)]
@@ -124,7 +149,7 @@ impl Account {
     }
 
     pub fn generate_fallback_key(&mut self) {
-        self.inner.generate_fallback_key()
+        self.inner.generate_fallback_key();
     }
 
     pub fn mark_keys_as_published(&mut self) {
@@ -135,14 +160,16 @@ impl Account {
         &self,
         identity_key: &str,
         one_time_key: &str,
+        session_version: SessionConfigVersion,
     ) -> Result<Session, JsValue> {
+        let session_config = SessionConfig::from(session_version);
         let identity_key =
             vodozemac::Curve25519PublicKey::from_base64(identity_key).map_err(error_to_js)?;
         let one_time_key =
             vodozemac::Curve25519PublicKey::from_base64(one_time_key).map_err(error_to_js)?;
         let session = self
             .inner
-            .create_outbound_session(identity_key, one_time_key);
+            .create_outbound_session(session_config, identity_key, one_time_key);
 
         Ok(Session { inner: session })
     }

@@ -2,7 +2,22 @@ use wasm_bindgen::prelude::*;
 
 use crate::error_to_js;
 
-use vodozemac::megolm::{ExportedSessionKey, MegolmMessage, SessionKey};
+use vodozemac::megolm::{ExportedSessionKey, MegolmMessage, SessionKey,SessionConfig};
+
+#[wasm_bindgen]
+pub enum GroupSessionVersion {
+    V1,
+    V2,
+}
+
+impl From<GroupSessionVersion> for SessionConfig {
+    fn from(value: GroupSessionVersion) -> Self {
+        match value {
+            GroupSessionVersion::V1 => SessionConfig::version_1(),
+            GroupSessionVersion::V2 => SessionConfig::version_2(),
+        }
+    }
+}
 
 #[wasm_bindgen]
 pub struct GroupSession {
@@ -12,9 +27,10 @@ pub struct GroupSession {
 #[wasm_bindgen]
 impl GroupSession {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Self {
+    pub fn new(version: GroupSessionVersion) -> Self {
+        let session_config = SessionConfig::from(version);
         Self {
-            inner: vodozemac::megolm::GroupSession::new(),
+            inner: vodozemac::megolm::GroupSession::new(session_config),
         }
     }
 
@@ -72,19 +88,21 @@ pub struct InboundGroupSession {
 #[wasm_bindgen]
 impl InboundGroupSession {
     #[wasm_bindgen(constructor)]
-    pub fn new(session_key: &str) -> Result<InboundGroupSession, JsValue> {
+    pub fn new(session_key: &str, group_session_version: GroupSessionVersion) -> Result<InboundGroupSession, JsValue> {
         let key = SessionKey::from_base64(session_key).map_err(error_to_js)?;
+        let session_config = SessionConfig::from(group_session_version);
 
         Ok(Self {
-            inner: vodozemac::megolm::InboundGroupSession::new(&key),
+            inner: vodozemac::megolm::InboundGroupSession::new(&key, session_config),
         })
     }
 
-    pub fn import(session_key: &str) -> Result<InboundGroupSession, JsValue> {
+    pub fn import(session_key: &str, group_session_version: GroupSessionVersion) -> Result<InboundGroupSession, JsValue> {
         let key = ExportedSessionKey::from_base64(session_key).map_err(error_to_js)?;
+        let session_config = SessionConfig::from(group_session_version);
 
         Ok(Self {
-            inner: vodozemac::megolm::InboundGroupSession::import(&key),
+            inner: vodozemac::megolm::InboundGroupSession::import(&key, session_config),
         })
     }
 
@@ -107,7 +125,7 @@ impl InboundGroupSession {
         let ret = self.inner.decrypt(&message).map_err(error_to_js)?;
 
         Ok(DecryptedMessage {
-            plaintext: ret.plaintext,
+            plaintext: String::from_utf8(ret.plaintext).map_err(error_to_js)?,
             message_index: ret.message_index,
         })
     }

@@ -17,14 +17,14 @@ fn error_to_js(error: impl std::error::Error) -> JsError {
 
 #[wasm_bindgen(getter_with_clone, setter)]
 pub struct OlmMessage {
-    pub ciphertext: String,
+    pub ciphertext: Vec<u8>,
     pub message_type: usize,
 }
 
 #[wasm_bindgen]
 impl OlmMessage {
     #[wasm_bindgen(constructor)]
-    pub fn new(message_type: usize, ciphertext: String) -> Self {
+    pub fn new(message_type: usize, ciphertext: Vec<u8>) -> Self {
         Self {
             ciphertext,
             message_type,

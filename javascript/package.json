@@ -1,9 +1,11 @@
 {
   "devDependencies": {
-    "jest": "^27.5.1"
+    "typescript": "5.8.3",
+    "vitest": "3.1.2"
   },
   "scripts": {
-    "pretest": "wasm-pack build --target nodejs",
-    "test": "jest"
+    "build": "wasm-pack build --target bundler",
+    "build:node": "wasm-pack build --target nodejs",
+    "test": "vitest"
   }
 }

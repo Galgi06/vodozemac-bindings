@@ -1,3 +1,4 @@
+use vodozemac::olm::SessionConfig;
 use wasm_bindgen::prelude::*;
 
 use crate::error_to_js;
@@ -7,6 +8,22 @@ use super::OlmMessage;
 #[wasm_bindgen]
 pub struct Session {
     pub(super) inner: vodozemac::olm::Session,
+}
+
+
+#[wasm_bindgen]
+pub enum SessionConfigVersion {
+    V1,
+    V2,
+}
+
+impl From<SessionConfigVersion> for SessionConfig {
+    fn from(value: SessionConfigVersion) -> Self {
+        match value {
+            SessionConfigVersion::V1 => SessionConfig::version_1(),
+            SessionConfigVersion::V2 => SessionConfig::version_2(),
+        }
+    }
 }
 
 #[wasm_bindgen]
@@ -59,15 +76,15 @@ impl Session {
         }
     }
 
-    pub fn encrypt(&mut self, plaintext: &str) -> OlmMessage {
+    pub fn encrypt(&mut self, plaintext: &str) -> Result<OlmMessage, JsValue> {
         let message = self.inner.encrypt(plaintext);
 
         let (message_type, ciphertext) = message.to_parts();
 
-        OlmMessage {
-            ciphertext,
+        Ok(OlmMessage {
+            ciphertext: ciphertext,
             message_type,
-        }
+        })
     }
 
     pub fn decrypt(&mut self, message: &OlmMessage) -> Result<String, JsValue> {
@@ -75,6 +92,6 @@ impl Session {
             vodozemac::olm::OlmMessage::from_parts(message.message_type, &message.ciphertext)
                 .map_err(error_to_js)?;
 
-        Ok(self.inner.decrypt(&message).map_err(error_to_js)?)
+        Ok(String::from_utf8(self.inner.decrypt(&message).map_err(error_to_js)?).map_err(error_to_js)?)
     }
 }

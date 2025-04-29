@@ -1,12 +1,5 @@
 /target
-Cargo.lock
-python/__pycache__
-python/tests/__pycache__
-javascript/node_modules
-javascript/yarn-error.log
-javascript/yarn.lock
-cpp/account-test
-cpp/session-test
-cpp/sas-test
-cpp/group-session-test
-.ccls-cache
+node_modules
+yarn-error.log
+
+.direnv
