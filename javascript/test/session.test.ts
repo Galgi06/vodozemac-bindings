@@ -8,10 +8,10 @@ function create_session() {
     const alice = new Account();
     const bob = new Account();
 
-    bob.generate_one_time_keys(1);
-    const [one_time_key] = bob.one_time_keys.values();
+    bob.generate_fallback_key();
+    const [fallback_key] = bob.fallback_key.values();
 
-    const session = alice.create_outbound_session(bob.curve25519_key, one_time_key, SessionConfigVersion.V1);
+    const session = alice.create_outbound_session(bob.curve25519_key, fallback_key, SessionConfigVersion.V1);
 
     return [alice, bob, session] as const;
 }

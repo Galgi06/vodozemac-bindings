@@ -56,8 +56,8 @@ impl OneTimeKeyGenerationResult {
     pub fn created(&self) -> Vec<String> {
         self.inner.created.iter().map(|k| k.to_base64()).collect()
     }
-    #[wasm_bindgen(getter)]
 
+    #[wasm_bindgen(getter)]
     pub fn removed(&self) -> Vec<String> {
         self.inner.removed.iter().map(|k| k.to_base64()).collect()
     }
@@ -107,12 +107,12 @@ impl Account {
         Ok(self.inner.to_libolm_pickle(pickle_key).map_err(error_to_js)?)
     }
 
-    #[wasm_bindgen(method, getter)]
+    #[wasm_bindgen(getter)]
     pub fn ed25519_key(&self) -> String {
         self.inner.ed25519_key().to_base64()
     }
 
-    #[wasm_bindgen(method, getter)]
+    #[wasm_bindgen(getter)]
     pub fn curve25519_key(&self) -> String {
         self.inner.curve25519_key().to_base64()
     }
@@ -121,12 +121,12 @@ impl Account {
         self.inner.sign(message).to_base64()
     }
 
-    #[wasm_bindgen(method, getter)]
+    #[wasm_bindgen(getter)]
     pub fn max_number_of_one_time_keys(&self) -> usize {
         self.inner.max_number_of_one_time_keys()
     }
 
-    #[wasm_bindgen(method, getter)]
+    #[wasm_bindgen(getter)]
     pub fn one_time_keys(&self) -> Result<JsValue, JsValue> {
         let keys: HashMap<_, _> = self
             .inner
@@ -144,7 +144,7 @@ impl Account {
         }
     }
 
-    #[wasm_bindgen(method, getter)]
+    #[wasm_bindgen(getter)]
     pub fn fallback_key(&self) -> Result<JsValue, JsValue> {
         let keys: HashMap<String, String> = self
             .inner
@@ -166,15 +166,15 @@ impl Account {
 
     pub fn create_outbound_session(
         &self,
-        identity_key: &str,
-        one_time_key: &str,
+        identity_key: String,
+        one_time_key: String, // can we pass it as ref?
         session_version: SessionConfigVersion,
     ) -> Result<Session, JsValue> {
         let session_config = SessionConfig::from(session_version);
         let identity_key =
-            vodozemac::Curve25519PublicKey::from_base64(identity_key).map_err(error_to_js)?;
+            vodozemac::Curve25519PublicKey::from_base64(&identity_key).map_err(error_to_js)?;
         let one_time_key =
-            vodozemac::Curve25519PublicKey::from_base64(one_time_key).map_err(error_to_js)?;
+            vodozemac::Curve25519PublicKey::from_base64(&one_time_key).map_err(error_to_js)?;
         let session = self
             .inner
             .create_outbound_session(session_config, identity_key, one_time_key);
@@ -184,11 +184,11 @@ impl Account {
 
     pub fn create_inbound_session(
         &mut self,
-        identity_key: &str,
+        identity_key: String,
         message: &OlmMessage,
     ) -> Result<InboundCreationResult, JsValue> {
         let identity_key =
-            vodozemac::Curve25519PublicKey::from_base64(identity_key).map_err(error_to_js)?;
+            vodozemac::Curve25519PublicKey::from_base64(&identity_key).map_err(error_to_js)?;
 
         let message =
             vodozemac::olm::OlmMessage::from_parts(message.message_type, &message.ciphertext)
