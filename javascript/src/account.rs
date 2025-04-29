@@ -99,6 +99,14 @@ impl Account {
         Ok(self.inner.pickle().encrypt(pickle_key))
     }
 
+    pub fn pickle_libolm(&self, pickle_key: &[u8]) -> Result<String, JsValue> {
+        let pickle_key: &[u8; 32] = pickle_key
+            .try_into()
+            .map_err(|_| JsError::new("Invalid pickle key length, expected 32 bytes"))?;
+
+        Ok(self.inner.to_libolm_pickle(pickle_key).map_err(error_to_js)?)
+    }
+
     #[wasm_bindgen(method, getter)]
     pub fn ed25519_key(&self) -> String {
         self.inner.ed25519_key().to_base64()
