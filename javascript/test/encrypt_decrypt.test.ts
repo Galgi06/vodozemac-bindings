@@ -121,14 +121,10 @@ describe('Encrypt and decrypt', () => {
 
         expect(message.message_type).toEqual(0)
 
-        // the plaintext is returned from the inbound session
-        // So, if you try SESSION, PLAINTEXT
-        // you will get a null pointer.
-        // You need to use PLAINTEXT first, then SESSION.
-        const { plaintext, session } = bob.create_inbound_session(alice.curve25519_key, message)
+        const { session, plaintext } = bob.create_inbound_session(alice.curve25519_key, message)
 
-        expect(session.session_id).toBe(aliceSession.session_id)
         expect(plaintext).toBe(testmessage)
+        expect(session.session_id).toBe(aliceSession.session_id)
 
 
         // bob replies to alice

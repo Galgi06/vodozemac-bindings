@@ -10,6 +10,13 @@ pub struct Session {
     pub(super) inner: vodozemac::olm::Session,
 }
 
+impl Clone for Session {
+    fn clone(&self) -> Self {
+        let pickled = self.inner.pickle();
+        let session = vodozemac::olm::Session::from_pickle(pickled);
+        Self { inner: session }
+    }
+}
 
 #[wasm_bindgen]
 pub enum SessionConfigVersion {
@@ -92,6 +99,9 @@ impl Session {
             vodozemac::olm::OlmMessage::from_parts(message.message_type, &message.ciphertext)
                 .map_err(error_to_js)?;
 
-        Ok(String::from_utf8(self.inner.decrypt(&message).map_err(error_to_js)?).map_err(error_to_js)?)
+        Ok(
+            String::from_utf8(self.inner.decrypt(&message).map_err(error_to_js)?)
+                .map_err(error_to_js)?,
+        )
     }
 }

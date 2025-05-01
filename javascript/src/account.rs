@@ -21,8 +21,8 @@ pub struct InboundCreationResult {
 #[wasm_bindgen]
 impl InboundCreationResult {
     #[wasm_bindgen(getter)]
-    pub fn session(self) -> Session {
-        self.session
+    pub fn session(&self) -> Session {
+        self.session.clone()
     }
 
     #[wasm_bindgen(getter)]
