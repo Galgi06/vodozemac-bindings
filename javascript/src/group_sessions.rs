@@ -2,7 +2,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::error_to_js;
 
-use vodozemac::megolm::{ExportedSessionKey, MegolmMessage, SessionKey,SessionConfig};
+use vodozemac::megolm::{ExportedSessionKey, MegolmMessage, SessionConfig, SessionKey};
 
 #[wasm_bindgen]
 pub enum GroupSessionVersion {
@@ -95,7 +95,10 @@ pub struct InboundGroupSession {
 #[wasm_bindgen]
 impl InboundGroupSession {
     #[wasm_bindgen(constructor)]
-    pub fn new(session_key: &str, group_session_version: GroupSessionVersion) -> Result<InboundGroupSession, JsValue> {
+    pub fn new(
+        session_key: &str,
+        group_session_version: GroupSessionVersion,
+    ) -> Result<InboundGroupSession, JsValue> {
         let key = SessionKey::from_base64(session_key).map_err(error_to_js)?;
         let session_config = SessionConfig::from(group_session_version);
 
@@ -104,7 +107,10 @@ impl InboundGroupSession {
         })
     }
 
-    pub fn import(session_key: &str, group_session_version: GroupSessionVersion) -> Result<InboundGroupSession, JsValue> {
+    pub fn import(
+        session_key: &str,
+        group_session_version: GroupSessionVersion,
+    ) -> Result<InboundGroupSession, JsValue> {
         let key = ExportedSessionKey::from_base64(session_key).map_err(error_to_js)?;
         let session_config = SessionConfig::from(group_session_version);
 

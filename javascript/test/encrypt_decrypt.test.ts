@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { Account, SessionConfigVersion } from '../pkg/vodozemac';
+import { Account, SessionConfigVersion } from '../node.mjs';
 
 
 describe('Encrypt and decrypt', () => {

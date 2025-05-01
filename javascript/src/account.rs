@@ -5,10 +5,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::{error_to_js, session::SessionConfigVersion};
 
-use super::{
-    session::Session,
-    OlmMessage,
-};
+use super::{session::Session, OlmMessage};
 
 #[wasm_bindgen]
 pub struct Account {
@@ -46,8 +43,7 @@ impl From<vodozemac::olm::InboundCreationResult> for InboundCreationResult {
 }
 #[wasm_bindgen]
 pub struct OneTimeKeyGenerationResult {
-    pub (super) inner : vodozemac::olm::OneTimeKeyGenerationResult,
-
+    pub(super) inner: vodozemac::olm::OneTimeKeyGenerationResult,
 }
 
 #[wasm_bindgen]
@@ -62,7 +58,6 @@ impl OneTimeKeyGenerationResult {
         self.inner.removed.iter().map(|k| k.to_base64()).collect()
     }
 }
-
 
 #[wasm_bindgen]
 impl Account {
@@ -104,7 +99,10 @@ impl Account {
             .try_into()
             .map_err(|_| JsError::new("Invalid pickle key length, expected 32 bytes"))?;
 
-        Ok(self.inner.to_libolm_pickle(pickle_key).map_err(error_to_js)?)
+        Ok(self
+            .inner
+            .to_libolm_pickle(pickle_key)
+            .map_err(error_to_js)?)
     }
 
     #[wasm_bindgen(getter)]
@@ -175,9 +173,9 @@ impl Account {
             vodozemac::Curve25519PublicKey::from_base64(&identity_key).map_err(error_to_js)?;
         let one_time_key =
             vodozemac::Curve25519PublicKey::from_base64(&one_time_key).map_err(error_to_js)?;
-        let session = self
-            .inner
-            .create_outbound_session(session_config, identity_key, one_time_key);
+        let session =
+            self.inner
+                .create_outbound_session(session_config, identity_key, one_time_key);
 
         Ok(Session { inner: session })
     }

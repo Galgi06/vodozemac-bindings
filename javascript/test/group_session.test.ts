@@ -1,4 +1,4 @@
-import { GroupSession, GroupSessionVersion, InboundGroupSession } from '../pkg/vodozemac.js';
+import { GroupSession, GroupSessionVersion, InboundGroupSession } from '../node.mjs';
 import { describe, it, expect } from 'vitest';
 
 const stringToUint8Array = (str: string) => new Uint8Array(Buffer.from(str));

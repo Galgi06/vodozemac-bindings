@@ -1,4 +1,4 @@
-import { Account } from '../pkg/vodozemac.js';
+import { Account } from '../node.mjs';
 import { describe, it, expect } from 'vitest';
 
 const stringToUint8Array = (str: string) => new Uint8Array(Buffer.from(str));

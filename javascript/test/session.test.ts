@@ -1,4 +1,4 @@
-import { Account, Session, OlmMessage, SessionConfigVersion } from '../pkg/vodozemac.js';
+import { Account, Session, OlmMessage, SessionConfigVersion } from '../node.mjs';
 import { describe, it, expect } from 'vitest';
 
 const stringToUint8Array = (str: string) => new Uint8Array(Buffer.from(str));

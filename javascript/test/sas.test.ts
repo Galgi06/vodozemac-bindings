@@ -1,4 +1,4 @@
-import { Sas } from '../pkg/vodozemac.js';
+import { Sas } from '../node.mjs';
 import { describe, it, expect } from 'vitest';
 
 const EXTRA_INFO = "extra_info";
