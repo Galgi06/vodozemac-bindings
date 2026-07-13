@@ -17,6 +17,8 @@ describe('security guardrails', function () {
         allZeroPublicKey,
         SessionConfigVersion.V1,
       ),
-    ).toThrow();
+    ).toThrow(
+      /The shared secret was derived from an insecure key exchange \(non-contributory behaviour\)/u,
+    );
   });
 });
