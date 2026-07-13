@@ -4,6 +4,8 @@ mod account;
 mod group_sessions;
 mod sas;
 mod session;
+#[cfg(test)]
+mod security_tests;
 
 pub use account::Account;
 pub use sas::{EstablishedSas, Sas, SasBytes};

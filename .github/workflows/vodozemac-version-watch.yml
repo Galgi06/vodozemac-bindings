@@ -1,0 +1,103 @@
+name: vodozemac-version-watch
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read current vodozemac version
+        id: current
+        run: |
+          version="$(python3 - <<'PY'
+          import pathlib, re
+          text = pathlib.Path("javascript/Cargo.toml").read_text()
+          match = re.search(r'vodozemac\s*=\s*\{[^}]*version\s*=\s*"([^"]+)"', text, re.S)
+          if not match:
+              raise SystemExit("Could not find vodozemac version in javascript/Cargo.toml")
+          print(match.group(1))
+          PY
+          )"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch latest upstream release
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          response="$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/matrix-org/vodozemac/releases/latest)"
+          tag="$(printf '%s' "$response" | jq -r '.tag_name')"
+          version="${tag#v}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Compare versions
+        id: compare
+        run: |
+          current="${{ steps.current.outputs.version }}"
+          latest="${{ steps.latest.outputs.version }}"
+          ordered="$(printf '%s\n%s\n' "$current" "$latest" | sort -V)"
+          lowest="$(printf '%s\n' "$ordered" | head -n1)"
+          highest="$(printf '%s\n' "$ordered" | tail -n1)"
+          if [ "$current" != "$latest" ] && [ "$current" = "$lowest" ] && [ "$latest" = "$highest" ]; then
+            echo "behind=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "behind=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check for existing tracking issue
+        id: issue
+        if: steps.compare.outputs.behind == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Upgrade vodozemac to ${{ steps.latest.outputs.tag }}"
+          query="$(python3 - <<'PY'
+          import urllib.parse
+          print(urllib.parse.quote('repo:${{ github.repository }} is:issue is:open in:title "Upgrade vodozemac to ${{ steps.latest.outputs.tag }}"'))
+          PY
+          )"
+          response="$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/search/issues?q=$query")"
+          count="$(printf '%s' "$response" | jq -r '.total_count')"
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+
+      - name: Open upgrade issue
+        if: steps.compare.outputs.behind == 'true' && steps.issue.outputs.count == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Upgrade vodozemac to ${{ steps.latest.outputs.tag }}"
+          body="$(cat <<EOF
+          The fork is behind upstream \`matrix-org/vodozemac\`.
+
+          - Current version in \`javascript/Cargo.toml\`: \`${{ steps.current.outputs.version }}\`
+          - Latest upstream release: \`${{ steps.latest.outputs.tag }}\`
+
+          Required action:
+          1. Review the upstream changelog and security notes.
+          2. Assess API breakage in the JS/WASM wrapper.
+          3. Ship the upgrade under the maintenance policy in \`docs/security/VODOZEMAC_BINDING_MAINTENANCE.md\`.
+          EOF
+          )"
+          jq -n --arg title "$title" --arg body "$body" '{title: $title, body: $body}' > issue.json
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/issues \
+            -d @issue.json

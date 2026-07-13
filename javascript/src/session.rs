@@ -21,14 +21,12 @@ impl Clone for Session {
 #[wasm_bindgen]
 pub enum SessionConfigVersion {
     V1,
-    V2,
 }
 
 impl From<SessionConfigVersion> for SessionConfig {
     fn from(value: SessionConfigVersion) -> Self {
         match value {
             SessionConfigVersion::V1 => SessionConfig::version_1(),
-            SessionConfigVersion::V2 => SessionConfig::version_2(),
         }
     }
 }
@@ -84,7 +82,7 @@ impl Session {
     }
 
     pub fn encrypt(&mut self, plaintext: &str) -> Result<OlmMessage, JsValue> {
-        let message = self.inner.encrypt(plaintext);
+        let message = self.inner.encrypt(plaintext).map_err(error_to_js)?;
 
         let (message_type, ciphertext) = message.to_parts();
 

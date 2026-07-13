@@ -7,14 +7,12 @@ use vodozemac::megolm::{ExportedSessionKey, MegolmMessage, SessionConfig, Sessio
 #[wasm_bindgen]
 pub enum GroupSessionVersion {
     V1,
-    V2,
 }
 
 impl From<GroupSessionVersion> for SessionConfig {
     fn from(value: GroupSessionVersion) -> Self {
         match value {
             GroupSessionVersion::V1 => SessionConfig::version_1(),
-            GroupSessionVersion::V2 => SessionConfig::version_2(),
         }
     }
 }

@@ -37,7 +37,7 @@ impl From<vodozemac::olm::InboundCreationResult> for InboundCreationResult {
             session: Session {
                 inner: result.session,
             },
-            plaintext: String::from_utf8(result.plaintext).unwrap(),
+            plaintext: String::from_utf8_lossy(&result.plaintext).into_owned(),
         }
     }
 }
@@ -175,7 +175,8 @@ impl Account {
             vodozemac::Curve25519PublicKey::from_base64(&one_time_key).map_err(error_to_js)?;
         let session =
             self.inner
-                .create_outbound_session(session_config, identity_key, one_time_key);
+                .create_outbound_session(session_config, identity_key, one_time_key)
+                .map_err(error_to_js)?;
 
         Ok(Session { inner: session })
     }
@@ -195,7 +196,7 @@ impl Account {
         if let vodozemac::olm::OlmMessage::PreKey(message) = message {
             Ok(self
                 .inner
-                .create_inbound_session(identity_key, &message)
+                .create_inbound_session(SessionConfig::version_1(), identity_key, &message)
                 .map_err(error_to_js)?
                 .into())
         } else {
