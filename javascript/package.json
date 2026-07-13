@@ -40,7 +40,7 @@
     "build": "./scripts/build.sh",
     "build:dev": "WASM_PACK_ARGS=--dev wasm-pack build --target nodejs",
     "test": "vitest run",
-    "prepack": "npm run build && npm run test"
+    "prepack": "npm run test"
   },
   "devDependencies": {
     "esbuild": "^0.25.3",
